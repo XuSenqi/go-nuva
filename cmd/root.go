@@ -6,6 +6,9 @@ package cmd
 import (
 	"os"
 
+	"go-nuva/internal/log"
+	"go-nuva/internal/log/types"
+
 	"github.com/spf13/cobra"
 )
 
@@ -13,12 +16,14 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "go-nuva",
 	Short: "A framework for launching http server quickly",
-	Long: ``,
+	Long:  ``,
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	defer log.Stop()
+	log.Init(types.DebugLevel, "./logs/go-nuva.log") //todo: 手动指定level / 日志路径，改成配置文件读取
+	                                                 //      zap log rotate目前写死一个小时一个文件，后面改成使用lumberjack包
+
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -28,5 +33,3 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(versionCmd)
 }
-
-
