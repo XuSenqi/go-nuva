@@ -1,0 +1,2 @@
+1 zap log rotate目前写死一个小时一个文件，后面改成使用lumberjack包
+2 http server只是一个demo, 要实现方便地注册handler 

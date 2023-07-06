@@ -4,9 +4,15 @@ Copyright © 2023 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"go-nuva/internal/config"
 	"go-nuva/internal/log"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +23,7 @@ var serverCmd = &cobra.Command{
 	Short:   "",
 	Long:    ``,
 	PreRunE: preRunE,
-	RunE:    server,
+	RunE:    runServer,
 }
 
 func init() {
@@ -35,7 +41,7 @@ func preRunE(cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func server(_ *cobra.Command, _ []string) error {
+func runServer(_ *cobra.Command, _ []string) error {
 	defer log.Stop()
 
 	lvl, err := log.ParseLevel(config.GetLogLevel()) // zap log rotate目前写死一个小时一个文件，后面改成使用lumberjack包
@@ -45,6 +51,42 @@ func server(_ *cobra.Command, _ []string) error {
 	log.Init(lvl, config.GetLogPath())
 
 	//todo: run http server; and handlers
+	startHttpServer()
 	log.Debug("root server running")
+	return nil
+}
+
+// http server demo
+func startHttpServer() error {
+	// handler
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(5 * time.Second)
+		fmt.Fprintln(w, "hello")
+	})
+
+	srv := http.Server{
+		Addr:    config.GetListenIp() + ":" + strconv.Itoa(int(config.GetListenPort())),
+		Handler: handler,
+	}
+
+	idleConnsClosed := make(chan struct{})
+	go func() {
+		sigint := make(chan os.Signal, 1)
+		signal.Notify(sigint, os.Interrupt)
+		<-sigint
+
+		if err := srv.Shutdown(context.Background()); err != nil {
+			log.Infof("HTTP server Shutdown: %v", err)
+		}
+		log.Info("server gracefully shutdown")
+		close(idleConnsClosed)
+	}()
+
+	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
+		// Error starting or closing listener:
+		log.Errorf("HTTP server ListenAndServe: %v", err)
+	}
+
+	<-idleConnsClosed
 	return nil
 }
