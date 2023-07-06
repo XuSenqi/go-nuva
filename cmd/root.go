@@ -6,9 +6,6 @@ package cmd
 import (
 	"os"
 
-	"go-nuva/internal/log"
-	"go-nuva/internal/log/types"
-
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +17,6 @@ var rootCmd = &cobra.Command{
 }
 
 func Execute() {
-	defer log.Stop()
-	log.Init(types.DebugLevel, "./logs/go-nuva.log") //todo: 手动指定level / 日志路径，改成配置文件读取
-	                                                 //      zap log rotate目前写死一个小时一个文件，后面改成使用lumberjack包
 
 	err := rootCmd.Execute()
 	if err != nil {
@@ -32,4 +26,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(versionCmd)
+	rootCmd.AddCommand(serverCmd)
 }
