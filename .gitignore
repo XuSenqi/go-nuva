@@ -6,7 +6,9 @@
 *.gz
 *.tgz
 *.rpm
+*.list
 .vscode
 /bin/
 /logs/
 /tmp/
+/deploy/
