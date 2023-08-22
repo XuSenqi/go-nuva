@@ -1,0 +1,10 @@
+---
+service:
+  name: go-nuva
+  ip: "0.0.0.0"
+  port: 8888
+
+  ## log 配置
+  log:
+    log_path: "./logs/go-nuva.log"
+    log_level: debug
